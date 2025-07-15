@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mayank Vispute - Portfolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for general text, Montserrat for headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* Custom CSS for fonts and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Pure black background */
+            color: #f8f8f8; /* Light text */
+            scroll-behavior: smooth;
+            /* Hide body content initially until loader is done */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.loaded-content {
+            opacity: 1;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            color: #f8f8f8;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111111; /* Darker track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffbd39;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff9900;
+        }
+
+        /* Loader styles */
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000; /* Pure black loader background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+        }
+        #page-loader.fade-out {
+            opacity: 0;
+            pointer-events: none; /* Allow interaction after fade out */
+        }
+        .loader-text {
+            color: #ffbd39; /* Striking yellow */
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 0; /* No margin bottom as it moves up */
+            transform: translateY(0); /* Initial position */
+            opacity: 1;
+            transition: transform 0.8s ease-out, opacity 0.8s ease-out;
+        }
+        #page-loader.animate-up .loader-text {
+            transform: translateY(-100px); /* Move upward */
+            opacity: 0;
+        }
+
+
+        /* Hero section specific animations for staggered reveal */
+        .hero-text-reveal > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .hero-text-reveal.active > *:nth-child(1) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); } /* Hello! */
+        .hero-text-reveal.active > *:nth-child(2) { transition-delay: 0.4s; opacity: 1; transform: translateY(0); } /* I'm Mayank Vispute */
+        /* Typing animation will start after these */
+
+
+        /* Typing animation (Hero Section) */
+        .typing-animation {
+            overflow: hidden;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: bottom;
+            border-right: 2px solid #ffbd39; /* Cursor */
+            animation: blink-cursor 0.75s step-end infinite;
+            color: #93c5fd; /* blue-300 */
+            opacity: 0; /* Hidden initially, revealed by JS */
+            transition: opacity 0.5s ease-in-out;
+        }
+        .typing-animation.active {
+            opacity: 1;
+        }
+        @keyframes blink-cursor {
+            from, to { border-color: transparent; }
+            50% { border-color: #ffbd39; }
+        }
+
+        /* Static text after typing animation (Hero Section) */
+        .static-hero-text {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .static-hero-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        /* Hero image - Integrated look with blur boundaries and scroll reveal */
+        .hero-image-container {
+            position: relative; /* For pseudo-element overlay */
+            overflow: hidden; /* Ensures blur/gradient is contained */
+            width: 100%;
+            max-width: 550px; /* Increased max-width for larger presence */
+            height: 550px; /* Adjusted height to match width for square or near-square */
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7); /* More pronounced shadow */
+            opacity: 0; /* Initial state for scroll reveal */
+            transform: translateY(50px); /* Initial state for scroll reveal */
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out, box-shadow 0.3s ease-in-out;
+        }
+        .hero-image-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hero-image-container img {
+            border-radius: 0; /* No rounded corners */
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            display: block; /* Remove extra space below image */
+            transition: transform 0.3s ease-in-out;
+        }
+        .hero-image-container:hover img {
+            transform: scale(1.03); /* Subtle zoom on hover */
+        }
+
+        /* Gradient overlay for "blur boundaries" effect */
+        .hero-image-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.8) 100%); /* Soft radial gradient */
+            pointer-events: none; /* Allow clicks to pass through */
+            transition: background 0.3s ease-in-out;
+        }
+        .hero-image-container:hover::after {
+            background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.9) 100%); /* More pronounced on hover */
+        }
+
+
+        /* Project card hover effect */
+        .project-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Skill bar animation */
+        .skill-bar-fill {
+            width: 0;
+            transition: width 1s ease-out;
+        }
+        /* The --skill-width variable will be set by JavaScript on the .skill-bar-container */
+        .skill-bar-container.active .skill-bar-fill {
+            width: var(--skill-width);
+        }
+
+        /* Scroll reveal animation for sections */
+        .scroll-reveal-item {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .scroll-reveal-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered reveal for education/experience items */
+        .staggered-reveal-container > div {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .staggered-reveal-container.visible > div:nth-child(1) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
+        .staggered-reveal-container.visible > div:nth-child(2) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+        .staggered-reveal-container.visible > div:nth-child(3) { transition-delay: 0.5s; opacity: 1; transform: translateY(0); }
+        .staggered-reveal-container.visible > div:nth-child(4) { transition-delay: 0.7s; opacity: 1; transform: translateY(0); }
+        /* Add more for more items if needed */
+
+        /* Resume typing text specific styles */
+        #resume-intro-text {
+            opacity: 0; /* Hidden initially */
+            display: block; /* Ensure it's a block element */
+            min-height: 3em; /* Reserve space to prevent CLS during typing */
+            color: #f8f8f8; /* Ensure text color is correct (gray-300 is lighter, f8f8f8 is body default) */
+        }
+        #resume-intro-text.visible {
+            opacity: 1;
+        }
+        #resume-intro-text::after {
+            content: '|'; /* Typing cursor */
+            animation: blink-cursor 0.75s step-end infinite;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+        #resume-intro-text.typing-complete::after {
+            content: ''; /* Hide cursor when typing is complete */
+        }
+
+        /* No opacity for resume-content-boxes, let individual items handle it */
+        /* #resume-content-boxes {
+            opacity: 0;
+            transition: opacity 0.8s ease-out;
+        }
+        #resume-content-boxes.visible {
+            opacity: 1;
+        } */
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Page Loader -->
+    <div id="page-loader">
+        <h2 class="loader-text">Mayank Vispute Portfolio</h2>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed w-full bg-black z-50"> <!-- Added bg-black here -->
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#home" class="text-2xl font-extrabold text-yellow-400">Mayank Vispute</a>
+            <div class="hidden md:flex space-x-8">
+                <a href="#home" class="text-gray-300 hover:text-yellow-400 transition duration-300">Home</a>
+                <a href="#about" class="text-gray-300 hover:text-yellow-400 transition duration-300">About</a>
+                <a href="#resume" class="text-gray-300 hover:text-yellow-400 transition duration-300">Resume</a>
+                <a href="#education-section" class="text-gray-300 hover:text-yellow-400 transition duration-300">Education</a> <!-- New link -->
+                <a href="#projects" class="text-gray-300 hover:text-yellow-400 transition duration-300">Projects</a>
+                <a href="#contact" class="text-gray-300 hover:text-yellow-400 transition duration-300">Contact</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-yellow-400 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black bg-opacity-95 py-4">
+            <a href="#home" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">Home</a>
+            <a href="#about" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">About</a>
+            <a href="#resume" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">Resume</a>
+            <a href="#education-section" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">Education</a> <!-- New link -->
+            <a href="#projects" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">Projects</a>
+            <a href="#contact" class="block px-4 py-2 text-gray-300 hover:bg-gray-900 transition duration-300">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative bg-black min-h-screen flex items-center justify-center text-center overflow-hidden pt-20">
+        <!-- Background Image -->
+        <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('images/bg4.webp');"></div>
+        <div class="absolute inset-0 bg-black opacity-60"></div> <!-- Dark overlay over image -->
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-center relative z-10">
+            <div class="md:w-1/2 text-left md:text-left hero-text-reveal">
+                <p class="text-xl md:text-2xl text-yellow-300 mb-2">Hello!</p>
+                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-white mb-4">
+                    I'm <span class="text-yellow-400">Mayank Vispute</span>
+                </h1>
+                <!-- This span will now hold the looping typing animation -->
+                <p class="text-2xl md:text-3xl font-semibold mb-2">
+                    <span id="hero-typing-animation" class="typing-animation"></span>
+                </p>
+                <!-- This h2 will appear after the typing animation loop completes -->
+                <h2 id="student-freelancer-text" class="text-2xl md:text-3xl font-semibold text-white mt-2 static-hero-text">Student/Freelancer</h2>
+            </div>
+            <div class="md:w-1/2 flex justify-center md:justify-start mt-8 md:mt-0 md:ml-12">
+                <div id="hero-image-scroll-reveal" class="hero-image-container">
+                    <img src="images/profile_hero.jpg" alt="Mayank Vispute">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-black">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12 text-yellow-400 scroll-reveal-item">About Me</h2>
+            <div class="flex flex-col md:flex-row items-start md:space-x-12">
+                <!-- Left Column: Image and Details -->
+                <div class="md:w-1/3 flex flex-col items-center md:items-start mb-8 md:mb-0 scroll-reveal-item">
+                    <div class="w-64 h-64 mb-6 overflow-hidden shadow-lg">
+                        <img src="images/about-me.jpg" alt="Mayank Vispute" class="w-full h-full object-cover rounded-md">
+                    </div>
+                    <div class="text-center md:text-left w-full">
+                        <p class="text-lg mb-2"><strong class="text-yellow-300">Name:</strong> Mayank Vispute</p>
+                        <p class="text-lg mb-2"><strong class="text-yellow-300">Experience:</strong> 1 Year Web Development</p>
+                        <p class="text-lg mb-6"><strong class="text-yellow-300">Address:</strong> Pune, India</p>
+
+                        <h3 class="text-2xl font-bold mb-4 text-yellow-400">Skills</h3>
+                        <div class="space-y-4 w-full">
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="95%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Web Development</span>
+                                    <span class="text-gray-300">95%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="90%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Python</span>
+                                    <span class="text-gray-300">90%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="80%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Figma Design</span>
+                                    <span class="text-gray-300">80%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="85%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Java (Core & Advanced)</span>
+                                    <span class="text-gray-300">85%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="80%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Node.js</span>
+                                    <span class="text-gray-300">80%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="50%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">React.js</span>
+                                    <span class="text-gray-300">50%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="85%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">Android Development</span>
+                                    <span class="text-gray-300">85%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container scroll-reveal-item" data-skill-width="95%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">C++</span>
+                                    <span class="text-gray-300">95%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                            <!-- Skill Bar -->
+                            <div class="skill-bar-container" data-skill-width="80%">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-300">SQL (MySQL & PL/SQL)</span>
+                                    <span class="text-gray-300">80%</span>
+                                </div>
+                                <div class="w-full bg-gray-600 rounded-full h-2">
+                                    <div class="skill-bar-fill bg-yellow-500 h-2 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: About Me Text and Info -->
+                <div class="md:w-2/3 scroll-reveal-item">
+                    <h3 class="text-4xl font-bold mb-6 text-yellow-400">About Me</h3>
+                    <p class="text-lg leading-relaxed mb-6 text-gray-300">I am a passionate &amp; smart working Computer Engineering student seeking for an opportunity to enhance my inner skills and experience by working in organization and proving myself by working in critical conditions by using my educational knowledge to improve and excel the organizations needs and fulfill them for the organizations growth.</p>
+                    <ul class="list-none space-y-3 mb-8">
+                        <li><strong class="text-yellow-300">Profile:</strong> Web Developer &amp; Designer</li>
+                        <li><strong class="text-yellow-300">Education:</strong> Pursuing B.E. in Computer Engineering (3rd Year), SPPU</li>
+                        <li><strong class="text-yellow-300">Language:</strong> English, Hindi, Marathi</li>
+                        <li><strong class="text-yellow-300">Passion:</strong> Playing Basketball, Football</li>
+                        <li><strong class="text-yellow-300">Interest:</strong> Playing Guitar, creating new designs</li>
+                    </ul>
+
+                    <div class="flex items-center space-x-6 mb-8">
+                        <span class="text-5xl font-bold text-yellow-400">20+</span>
+                        <span class="text-2xl font-semibold text-white">Projects Completed</span>
+                    </div>
+                    <a href="https://www.linkedin.com/in/mayank-vispute-a28641251" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300">
+                        <i class="fab fa-linkedin mr-2"></i> LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resume Section -->
+    <section id="resume" class="py-16 bg-black">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12 text-yellow-400 scroll-reveal-item">My Resume</h2>
+            <!-- Resume Intro Text - This will be typed out -->
+            <p id="resume-intro-text" class="text-center text-lg max-w-3xl mx-auto mb-12 text-gray-300"></p>
+
+            <!-- Education Section (moved out of resume-content-boxes for independent loading) -->
+            <section id="education-section" class="bg-zinc-950 p-8 rounded-xl shadow-lg scroll-reveal-item mb-10">
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-graduation-cap text-yellow-400 text-3xl mr-4"></i>
+                    <h3 class="text-3xl font-bold text-blue-400">Education</h3>
+                </div>
+                <div class="space-y-8 staggered-reveal-container">
+                    <div>
+                        <p class="text-yellow-300 text-lg font-semibold">2023 - Present (Pursuing)</p>
+                        <h4 class="text-2xl font-bold text-white">Bachelor of Engineering (B.E.) in Computer Engineering</h4>
+                        <p class="text-gray-400">Savitribai Phule Pune University</p>
+                        <p class="mt-2 text-gray-300">Currently enhancing my skills in advanced computing concepts, software development methodologies, and data structures. Actively engaged in various academic projects.</p>
+                    </div>
+                    <div>
+                        <p class="text-yellow-300 text-lg font-semibold">2014 - 2018</p>
+                        <h4 class="text-2xl font-bold text-white">Diploma in Computer Engineering</h4>
+                        <p class="text-gray-400">Zeal Polytechnic, Narhe, Pune</p>
+                        <p class="mt-2 text-gray-300">Grade: First Class Distinction (86.23%). Developed strong foundational knowledge in computer science principles and completed several practical projects.</p>
+                    </div>
+                    <div>
+                        <p class="text-yellow-300 text-lg font-semibold">2012 - 2013</p>
+                        <h4 class="text-2xl font-bold text-white">Higher Secondary Certificate (HSC)</h4>
+                        <p class="text-gray-400">Good Shepherd Academy, Chalisgaon</p>
+                        <p class="mt-2 text-gray-300">Grade: First Class Distinction (89%). Strong academic performance in science stream.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Experience Section (now directly below Education, not dependent on resume intro typing) -->
+            <div id="experience-section" class="bg-zinc-950 p-8 rounded-xl shadow-lg scroll-reveal-item">
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-briefcase text-yellow-400 text-3xl mr-4"></i>
+                    <h3 class="text-3xl font-bold text-blue-400">Experience</h3>
+                </div>
+                <div class="space-y-8 staggered-reveal-container">
+                    <div>
+                        <p class="text-yellow-300 text-lg font-semibold">2020 - 2021</p>
+                        <h4 class="text-2xl font-bold text-white">Photo Editing</h4>
+                        <p class="text-gray-400">Vanshavaly.com, Pune</p>
+                        <ul class="list-disc list-inside mt-2 text-gray-300">
+                            <li>Edited high-volume passport-size photos, including precise background removal and solid color application using Adobe Photoshop.</li>
+                                <li>Applied advanced color grading to enhance image quality and ensured efficient digital asset management</li>
+                            <!--li></li>
+                            <li></li-->
+                        </ul>
+                    </div>
+                    <div>
+                        <!--p class="text-yellow-300 text-lg font-semibold">20XX - 20XX</p>
+                        <h4 class="text-2xl font-bold text-white">Previous Role</h4>
+                        <p class="text-gray-400">Previous Company, City</p>
+                        <ul class="list-disc list-inside mt-2 text-gray-300">
+                            <li>Another key responsibility or project.</li>
+                            <li>Showcase diverse skills.</li-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12 scroll-reveal-item">
+                <a href="#" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition duration-300">
+                    Download CV <i class="fas fa-download ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-16 bg-black">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12 text-yellow-400 scroll-reveal-item">My Projects</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto mb-12 text-gray-300 scroll-reveal-item">Showcasing a range of my work in web development, design, and programming, demonstrating my practical skills and problem-solving abilities.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Project Card 1 -->
+                <div class="project-card bg-zinc-950 rounded-xl shadow-lg overflow-hidden scroll-reveal-item">
+                    <img src="images/pro1.webp" alt="Digital Music Store Analysis" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-3">Medical Diagnosis Application</h3>
+                        <p class="text-gray-300 mb-4">This project was developed as to provide free medical diagnosis
+                                                      at home without any charges. This application provided features
+                                                      which involved the inclusion of the user. The user will input the
+                                                      symptoms and the application using its vast database will
+                                                      provide the cure or remedies of that disease. This application is
+                                                      executable on both android as well as on Web browser. This
+                                                      application also provides a vast information of home remedies
+                                                      for diseases or symptoms. This application also provides the
+                                                      emergency numbers (ambulance) and Doctor consultation in the
+                                                      nearest location of that user if the user condition is critical. In
+                                                      short, this application helps the user to check their health,
+                                                      remedies of symptoms and booking Dr. Consultation.</p>
+                        <p class="text-gray-400 text-sm mb-4"><strong>Technologies:</strong>Node.js,JavaScript,html,css</p>
+                        <div class="flex space-x-4">
+                            <!--a href="https://github.com/YourGitHubUsername/SQL_Music_Store_Analysis" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-300 hover:text-blue-400 transition duration-300"-->
+                                <i class="fab fa-github mr-2"></i> GitHub
+                            </a>
+                            <a href="#" class="flex items-center text-yellow-300 hover:text-yellow-400 transition duration-300">
+                                <i class="fas fa-eye mr-2"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 2 -->
+                <div class="project-card bg-zinc-950 rounded-xl shadow-lg overflow-hidden scroll-reveal-item">
+                    <img src="images/proj_2.jpg" alt="Diwali Sales Data Analysis" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-3">Diwali Sales Data Analysis with Python</h3>
+                        <p class="text-gray-300 mb-4">Performed exploratory data analysis on Diwali sales data using Python to improve customer experience and optimize sales strategies.</p>
+                        <p class="text-gray-400 text-sm mb-4"><strong>Technologies:</strong> Python (Pandas, Matplotlib), Data Cleaning</p>
+                        <div class="flex space-x-4">
+                            <a href="https://github.com/YourGitHubUsername/Python_Diwali_Sales_Analysis" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-300 hover:text-blue-400 transition duration-300">
+                                <i class="fab fa-github mr-2"></i> GitHub
+                            </a>
+                            <a href="#" class="flex items-center text-yellow-300 hover:text-yellow-400 transition duration-300">
+                                <i class="fas fa-eye mr-2"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 3 -->
+                <div class="project-card bg-zinc-950 rounded-xl shadow-lg overflow-hidden scroll-reveal-item">
+                    <img src="images/pro2.avif" alt="Madhav Store Sales Dashboard" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-3">ATS-Optimized Resume Builder</h3>
+                        <p class="text-gray-300 mb-4">ATS-Optimized Resume Builder: Developed a comprehensive,
+multi-page web application using HTML, CSS, and JavaScript
+that guides users through a step-by-step process to create
+professional, ATS-friendly resumes. The platform features realtime, simulated ATS compatibility feedback and offers diverse,
+customizable templates, significantly enhancing a user's ability
+to pass automated screenings and secure interviews. Key
+functionalities include client-side data persistence via Local
+storage , dynamic DOM manipulation for interactive forms, and
+client-side PDF/DOC generation using html2canvas and 
+JSpdf    for seamless resume downloads</p>
+                        <p class="text-gray-400 text-sm mb-4"><strong>Technologies:</strong>HTML5, CSS3, JavaScript (ES6+), jsPDF, html2canvas</p>
+                        <div class="flex space-x-4">
+                            <!--a href="https://github.com/YourGitHubUsername/Madhav_Store_Analysis_PowerBI" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-300 hover:text-blue-400 transition duration-300"-->
+                                <i class="fab fa-github mr-2"></i> GitHub
+                            </a>
+                            <a href="#" class="flex items-center text-yellow-300 hover:text-yellow-400 transition duration-300">
+                                <i class="fas fa-eye mr-2"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 4 -->
+                <div class="project-card bg-zinc-950 rounded-xl shadow-lg overflow-hidden scroll-reveal-item">
+                    <img src="images/pro3.avif" alt="Sales Forecast" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-3">E-commerce</h3>
+                        <p class="text-gray-300 mb-4">Built a responsive e-commerce website with Python Django,
+focusing on clean code and maintainability. Engineered features
+including a user registration/login system, product search and
+filtering, and a seamless checkout flow with secure payment
+integration. Utilized Django's "batteries-included" approach for
+rapid development and enhanced security.</p>
+                        <p class="text-gray-400 text-sm mb-4"><strong>Technologies:</strong> Python,Django,Database</p>
+                        <div class="flex space-x-4">
+                            <!--a href="https://github.com/YourGitHubUsername/sales_forecasting" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-300 hover:text-blue-400 transition duration-300"-->
+                                <i class="fab fa-github mr-2"></i> GitHub
+                            </a>
+                            <a href="#" class="flex items-center text-yellow-300 hover:text-yellow-400 transition duration-300">
+                                <i class="fas fa-eye mr-2"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Card 5 -->
+                <div class="project-card bg-zinc-950 rounded-xl shadow-lg overflow-hidden scroll-reveal-item">
+                    <img src="images/proj_5.jpg" alt="Customer Segmentation" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-3">Customer Segmentation using Clustering Model</h3>
+                        <p class="text-gray-300 mb-4">Engineered a Machine Learning model to segment customers into distinct groups, enabling targeted recommendations for financial products and services.</p>
+                        <p class="text-gray-400 text-sm mb-4"><strong>Technologies:</strong> Machine Learning, Python, Clustering</p>
+                        <div class="flex space-x-4">
+                            <a href="https://github.com/YourGitHubUsername/customer_segmentation" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-300 hover:text-blue-400 transition duration-300">
+                                <i class="fab fa-github mr-2"></i> GitHub
+                            </a>
+                            <a href="#" class="flex items-center text-yellow-300 hover:text-yellow-400 transition duration-300">
+                                <i class="fas fa-eye mr-2"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-12 scroll-reveal-item">
+                <a href="https://github.com/MayankVispute20" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition duration-300">
+                    View More Projects on GitHub <i class="fab fa-github ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 bg-black">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12 text-yellow-400 scroll-reveal-item">Get in Touch</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto mb-12 text-gray-300 scroll-reveal-item">I'm always open to new opportunities and collaborations. Feel free to reach out!</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                <div class="bg-zinc-950 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center transform hover:translate-y-[-5px] transition duration-300 scroll-reveal-item">
+                    <div class="bg-yellow-500 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-4">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Address</h3>
+                    <p class="text-gray-300">Pune, Maharashtra, India</p>
+                </div>
+                <div class="bg-zinc-950 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center transform hover:translate-y-[-5px] transition duration-300 scroll-reveal-item">
+                    <div class="bg-yellow-500 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-4">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Contact Number</h3>
+                    <p class="text-gray-300"><a href="tel:+919511229694" class="text-blue-300 hover:text-blue-400 transition duration-300">+91 9511229694</a></p>
+                </div>
+                <div class="bg-zinc-950 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center transform hover:translate-y-[-5px] transition duration-300 scroll-reveal-item">
+                    <div class="bg-yellow-500 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-4">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Email Address</h3>
+                    <p class="text-gray-300"><a href="mailto:visputemayank007@gmail.com" class="text-blue-300 hover:text-blue-400 transition duration-300">visputemayank007@gmail.com</a></p>
+                </div>
+                <div class="bg-zinc-950 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center transform hover:translate-y-[-5px] transition duration-300 scroll-reveal-item">
+                    <div class="bg-yellow-500 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-4">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Download Resume</h3>
+                    <p class="text-gray-300"><a href="#" class="text-blue-300 hover:text-blue-400 transition duration-300">Click to Download <i class="fas fa-download ml-1"></i></a></p>
+                </div>
+            </div>
+
+            <div class="text-center mt-12 scroll-reveal-item">
+                <h3 class="text-2xl font-bold text-white mb-4">Find me on Social Media</h3>
+                <div class="flex justify-center space-x-6 text-3xl">
+                    <a href="https://www.linkedin.com/in/mayank-vispute-a28641251" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-500 transition duration-300">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="https://github.com/MayankVispute20" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-500 transition duration-300">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://www.instagram.com/mayank_xix_" target="_blank" rel="noopener noreferrer" class="text-pink-400 hover:text-pink-500 transition duration-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-8 text-center text-gray-400 text-sm">
+        <div class="container mx-auto px-6">
+            <p>&copy; <script>document.write(new Date().getFullYear());</script> Mayank Vispute. All rights reserved.</p>
+            <p class="mt-2">Designed & Developed by Mayank Vispute</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Utility Functions for Animations ---
+
+        // General Scroll Reveal (Fade in and slide up)
+        const applyScrollReveal = () => {
+            const scrollRevealItems = document.querySelectorAll('.scroll-reveal-item');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1 // Trigger when 10% of the item is visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            scrollRevealItems.forEach(item => {
+                observer.observe(item);
+            });
+        };
+
+        // Skill Bar Animation (Fill up to percentage)
+        const applySkillBarAnimation = () => {
+            const skillBars = document.querySelectorAll('.skill-bar-container');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.3 // Adjusted threshold for earlier animation trigger
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const skillBarContainer = entry.target;
+                        const skillWidth = skillBarContainer.dataset.skillWidth; // Get the percentage from data-skill-width
+                        console.log(`Skill bar visible: ${skillBarContainer.querySelector('span').textContent} - Setting width to ${skillWidth}`);
+
+                        // Set the CSS custom property (variable) on the element
+                        skillBarContainer.style.setProperty('--skill-width', skillWidth);
+
+                        skillBarContainer.classList.add('active'); // Trigger CSS transition
+                        observer.unobserve(skillBarContainer); // Stop observing once animated
+                    }
+                });
+            }, observerOptions);
+
+            skillBars.forEach(bar => {
+                observer.observe(bar);
+            });
+        };
+
+        // Staggered Reveal for elements within a container (e.g., Education/Experience items)
+        const applyStaggeredReveal = () => {
+            const staggeredContainers = document.querySelectorAll('.staggered-reveal-container');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1 // When 10% of the container is visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            staggeredContainers.forEach(container => {
+                observer.observe(container);
+            });
+        };
+
+
+        // --- Hero Section Specific Animations ---
+
+        // Hero Typing Animation (Looping professional roles)
+        const heroTypingElement = document.getElementById('hero-typing-animation');
+        const heroTypingTexts = [
+            'Graphic Designer ',
+            'Java Developer ',
+            'Python Developer ',
+            'Web Developer ',
+            'UI/UX Developer '
+        ];
+        let heroTextIndex = 0;
+        let heroCharIndex = 0;
+        let heroIsDeleting = false;
+        let heroTypingTimeout;
+
+        function heroTypeWriter() {
+            if (!heroTypingElement) {
+                console.error("Hero typing animation element not found.");
+                return;
+            }
+
+            const currentText = heroTypingTexts[heroTextIndex];
+            if (heroIsDeleting) {
+                heroTypingElement.textContent = currentText.substring(0, heroCharIndex--);
+            } else {
+                heroTypingElement.textContent = currentText.substring(0, heroCharIndex++);
+            }
+
+            let typingSpeed = heroIsDeleting ? 75 : 150; // Faster erasing
+
+            if (!heroIsDeleting && heroCharIndex === currentText.length + 1) { // +1 to ensure all characters are typed
+                setTimeout(() => heroIsDeleting = true, 1000); // Pause before deleting
+            } else if (heroIsDeleting && heroCharIndex === -1) {
+                heroIsDeleting = false;
+                heroTextIndex = (heroTextIndex + 1) % heroTypingTexts.length;
+                heroCharIndex = 0;
+            }
+
+            heroTypingTimeout = setTimeout(heroTypeWriter, typingSpeed);
+        }
+
+
+        // --- Resume Section Specific Typing Animation ---
+
+        const resumeIntroTextElement = document.getElementById('resume-intro-text');
+        const resumeFullText = "Highly skilled and versatile computer engineering student with a strong foundation in web development, graphic design, and programming languages. Currently pursuing my B.E. at Savitribai Phule Pune University, and a diploma graduate from Zeal Polytechnic, where I showcased my abilities through several impressive projects.";
+        let resumeCharIndex = 0;
+        let resumeTypingTimeout;
+
+        function typeResumeIntroText() {
+            if (!resumeIntroTextElement) {
+                console.error("Resume intro text element not found.");
+                return;
+            }
+
+            resumeIntroTextElement.classList.add('visible'); // Make text element visible
+
+            if (resumeCharIndex < resumeFullText.length) {
+                resumeIntroTextElement.textContent += resumeFullText.charAt(resumeCharIndex);
+                resumeCharIndex++;
+                resumeTypingTimeout = setTimeout(typeResumeIntroText, 30); // Typing speed for resume text
+            } else {
+                resumeIntroTextElement.classList.add('typing-complete'); // Hide cursor
+                // Removed the code that made resume-content-boxes visible here
+            }
+        }
+
+
+        // --- Main DOMContentLoaded Event Listener (Or window.onload for preloader) ---
+
+        window.onload = function() {
+            console.log("Window loaded.");
+            const pageLoader = document.getElementById('page-loader');
+            const heroTextElements = document.querySelector('.hero-text-reveal');
+            const body = document.body;
+            const heroImageContainer = document.getElementById('hero-image-scroll-reveal');
+            const studentFreelancerText = document.getElementById('student-freelancer-text');
+
+            // Ensure body content is visible as loader fades out to prevent blank screen
+            body.classList.add('loaded-content');
+            console.log("Body content class 'loaded-content' added.");
+
+            // Initial loader animation sequence
+            setTimeout(() => {
+                console.log("Starting loader animation sequence.");
+                if (pageLoader) {
+                    pageLoader.classList.add('animate-up'); // Animate text up
+                    setTimeout(() => {
+                        pageLoader.classList.add('fade-out'); // Fade out whole loader
+                        setTimeout(() => {
+                            pageLoader.remove(); // Remove loader from DOM
+                            console.log("Loader removed from DOM.");
+
+                            // Activate hero text reveal after loader is gone
+                            if (heroTextElements) {
+                                heroTextElements.classList.add('active');
+                                console.log("Hero text reveal activated.");
+                            }
+
+                            // Start hero typing animation after initial hero text reveal
+                            setTimeout(() => {
+                                if (heroTypingElement) {
+                                    heroTypingElement.classList.add('active'); // Make typing span visible
+                                    console.log("Starting hero typing animation.");
+                                    heroTypeWriter(); // Start the hero typing animation
+                                }
+
+                                // Reveal Student/Freelancer text after a short delay (e.g., after "I'm Mayank Vispute" is fully visible)
+                                // This is now static, so it just needs to become visible.
+                                if (studentFreelancerText) {
+                                    studentFreelancerText.classList.add('visible');
+                                }
+                            }, 1200); // Delay for hero text reveal to complete
+                        }, 800); // Matches loader fade-out transition duration
+                    }, 800); // Matches loader text animate-up duration
+                } else {
+                    console.log("No page loader found, showing content immediately.");
+                    // Fallback if loader is somehow missing
+                    if (heroTextElements) {
+                        heroTextElements.classList.add('active');
+                    }
+                    if (heroTypingElement) {
+                        heroTypingElement.classList.add('active');
+                        heroTypeWriter();
+                    }
+                    if (studentFreelancerText) {
+                        studentFreelancerText.classList.add('visible');
+                    }
+                }
+            }, 500); // Small initial delay before loader animation starts
+
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Smooth scroll for navigation links and hide mobile menu
+            document.querySelectorAll('nav a').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if (this.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            window.scrollTo({
+                                top: targetElement.offsetTop - 80, // Adjust for fixed navbar height
+                                behavior: 'smooth'
+                            });
+                            // Hide mobile menu after clicking a link
+                            if (!mobileMenu.classList.contains('hidden')) {
+                                mobileMenu.classList.add('hidden');
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Apply general scroll reveal animations to various sections
+            applyScrollReveal();
+            applySkillBarAnimation();
+            applyStaggeredReveal(); // For education/experience boxes
+
+            // Observer for Resume Intro Text Typing Animation
+            const resumeSection = document.getElementById('resume');
+            if (resumeSection && resumeIntroTextElement) {
+                const resumeObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && resumeCharIndex === 0) { // Only start if not already typing
+                            console.log("Starting resume intro text typing animation.");
+                            typeResumeIntroText();
+                            resumeObserver.unobserve(entry.target); // Stop observing once typing starts
+                        }
+                    });
+                }, { root: null, rootMargin: '0px', threshold: 0.1 });
+                resumeObserver.observe(resumeSection);
+            }
+
+            // Manually observe hero image for its scroll reveal
+            if (heroImageContainer) {
+                const heroImageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            heroImageObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { root: null, rootMargin: '0px', threshold: 0.2 }); // Trigger when 20% visible
+                heroImageObserver.observe(heroImageContainer);
+            }
+        };
+    </script>
+</body>
+</html>
